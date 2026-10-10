@@ -1,0 +1,29 @@
+[project]
+name = "music-recommender-api"
+version = "0.1.0"
+description = "Content-based music recommender API built with FastAPI."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "fastapi[standard]>=0.142.2",
+    "joblib>=1.6.0",
+    "pandas>=3.0.6",
+    "scikit-learn>=1.9.1",
+]
+
+[project.urls]
+Repository = "https://github.com/Ali-reza-rn/music-recommender-api"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.fastapi]
+entrypoint = "app.main:app"

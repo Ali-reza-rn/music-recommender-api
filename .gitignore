@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Test and tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Dataset: download from Kaggle (see README), too large to commit
+data/*.csv
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+
+# Not ignored on purpose:
+# - artifacts/ is committed because the deployed API needs it and the dataset is not in the repo
+# - uv.lock is committed so installs are reproducible
