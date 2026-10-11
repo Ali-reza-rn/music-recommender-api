@@ -18,6 +18,9 @@ data/*.csv
 .idea/
 .DS_Store
 
+# Local secrets
+.env
+
 # Not ignored on purpose:
 # - artifacts/ is committed because the deployed API needs it and the dataset is not in the repo
 # - uv.lock is committed so installs are reproducible
