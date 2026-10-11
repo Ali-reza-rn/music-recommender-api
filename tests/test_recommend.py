@@ -1,13 +1,15 @@
 """Tests for the /health and /recommend endpoints.
 
 Covers valid requests, validation errors (422), unknown songs (404),
-case-insensitive matching, ambiguous titles, similarity ordering, and
-response shape. The `client` fixture comes from conftest.py.
+case-insensitive matching, ambiguous titles, similarity ordering, the
+searched song never appearing in its own results, and response shape.
+The `client` fixture comes from conftest.py.
 """
 
 import pytest
 
 TOP_N = 10
+MAX_TOP_N = 25  # must match the `le=` limit on top_n in RecommendationRequest
 
 
 def test_health_returns_ok(client):
@@ -50,7 +52,11 @@ def test_recommendation_returns_expected_song(
 @pytest.mark.parametrize("request_body", [
     {"song_title": "sweater weather", "artist_name": None, "top_n": 0},
     {"song_title": "sweater weather", "artist_name": None, "top_n": -1},
-    {"song_title": "sweater weather", "artist_name": None, "top_n": 999},
+    {
+        "song_title": "sweater weather",
+        "artist_name": None,
+        "top_n": MAX_TOP_N + 1
+    },
     {"song_title": "", "artist_name": None, "top_n": TOP_N},
     {"artist_name": None, "top_n": TOP_N},  # song_title missing entirely
 ], ids=[
@@ -127,6 +133,40 @@ def test_recommendation_similarity_is_sorted(client):
     assert similarity == sorted(similarity, reverse=True)
 
 
+# The searched song must never appear in its own recommendations
+
+@pytest.mark.parametrize("request_body", [
+    {
+        "song_title": "sweater weather",
+        "artist_name": None,
+        "top_n": MAX_TOP_N
+    },
+    {
+        "song_title": "shape of my heart",
+        "artist_name": "sting",
+        "top_n": MAX_TOP_N
+    },
+    {
+        "song_title": "love you like a love song",
+        "artist_name": None,
+        "top_n": MAX_TOP_N
+    },
+])
+def test_recommendation_excludes_searched_song(client, request_body):
+    response = client.post("/recommend", json=request_body)
+    assert response.status_code == 200
+
+    body = response.json()
+    # Compare title AND artist, using the artist the API actually resolved.
+    # Another artist's song with the same title is allowed to appear.
+    searched_song = (request_body["song_title"].lower(), body["artist_name"])
+    returned_songs = [
+        (item["track_name"], item["artist_name"])
+        for item in body["recommendations"]
+    ]
+    assert searched_song not in returned_songs
+
+
 # Response shape: structure and types are correct
 
 def test_recommendation_shape(client):
@@ -137,10 +177,7 @@ def test_recommendation_shape(client):
     }
     response = client.post("/recommend", json=request_body)
 
-    body = response.json()
-    recommendations = body["recommendations"]
-    song_title = request_body["song_title"].lower()
-    resolved_artist = body["artist_name"]
+    recommendations = response.json()["recommendations"]
 
     assert isinstance(recommendations, list)
     assert len(recommendations) == TOP_N
@@ -150,7 +187,3 @@ def test_recommendation_shape(client):
         assert isinstance(item["artist_name"], str)
         assert isinstance(item["genre"], str)
         assert isinstance(item["similarity"], float)
-        assert not (
-            item["track_name"] == song_title
-            and item["artist_name"] == resolved_artist
-        )

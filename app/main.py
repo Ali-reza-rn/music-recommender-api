@@ -167,7 +167,8 @@ def rank_similar_songs(
     """
     scores = cosine_similarity(features[song_idx : song_idx + 1], features)[0]
     ranked = sorted(enumerate(scores), key=lambda pair: pair[1], reverse=True)
-    return ranked[1 : top_n + 1]  # skip index 0: the song itself
+    # skip the song itself
+    return [pair for pair in ranked if pair[0] != song_idx][:top_n]
 
 
 @app.post("/recommend", response_model=RecommendationResponse)
