@@ -1,5 +1,7 @@
 # Music Recommender API
 
+[![CI/CD](https://github.com/Ali-reza-rn/music-recommender-api/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ali-reza-rn/music-recommender-api/actions/workflows/deploy.yml)
+
 A FastAPI service that recommends songs similar to a given song, using cosine similarity over lyrical and audio features.
 
 **Live:** https://music-recommender-api.fastapicloud.dev/docs

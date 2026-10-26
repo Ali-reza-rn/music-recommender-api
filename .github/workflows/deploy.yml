@@ -1,8 +1,9 @@
-name: Deploy to FastAPI Cloud
+name: CI/CD
 
 on:
   push:
     branches: [main]
+  pull_request:
 
 permissions:
   contents: read
@@ -29,6 +30,7 @@ jobs:
 
   deploy:
     needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
